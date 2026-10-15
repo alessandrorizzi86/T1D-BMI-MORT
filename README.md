@@ -6,6 +6,9 @@ Project about the association between BMI groups and all-cause mortality and cau
 
 #### Repository Content
 #### CodeList
-|*Filename*|*Content*|
+| **Filename** | **Content** |
+| --- | --- |
+| codelist-aurum-type1diabetes.txt | Codelist for the Type 1 diabetes cohort definition in CPRD AURUM |
+| codelist-gold-type1diabetes.txt | Codelist for the Type 1 diabetes cohort definition in CPRD AURUM |
 
 
