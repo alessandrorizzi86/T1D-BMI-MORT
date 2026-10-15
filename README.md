@@ -6,9 +6,6 @@ Project about the association between BMI groups and all-cause mortality and cau
 
 #### Repository Content
 #### CodeList
-##### type1diabetes.txt
-Codelist for the definition of subjects with T1D
-##### bmi.txt
-Codelist for the extraction of the bmi information
+|*Filename*|*Content*|
 
 
