@@ -5,6 +5,10 @@
 Project about the association between BMI groups and all-cause mortality and cause-specific mortality in subjects with type 1 diabetes (T1D) and matched controls using UK Clinical Research Practice Datalink GOLD and AURUM 
 
 #### Repository Content
-##### CodeList
+#### CodeList
+##### type1diabetes.txt
+Codelist for the definition of subjects with T1D
+##### bmi.txt
+Codelist for the extraction of the bmi information
 
 
