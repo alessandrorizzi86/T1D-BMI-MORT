@@ -1,0 +1,42 @@
+# Project: T1D-BMI-MORT
+# File: Figure S2 
+# Author: Alessandro Rizzi (ar671@leicester.ac.uk)
+# Last Update: 2026-09-03
+
+################################################################################
+## Useful Libraries
+library(haven)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+
+################################################################################
+# Set WD
+setwd("folder")
+
+# Upload the data
+df <- read_dta("data")
+
+figs2 <- df %>% ggplot(aes(x= bmi_time)) + 
+  geom_histogram(aes(y = (after_stat(count / sum(count)))*100),
+                 binwidth = 1, boundary = 0.5, 
+                 fill = "grey50", 
+                 color = "black")+
+  labs(x ="Years", 
+       y= "Percentage of observations")+
+  scale_x_continuous(breaks = c(-22:0))+
+  scale_y_continuous(breaks = c(0,2,4,6,8,10,12,14,16))+
+  theme_classic()+
+  theme(
+    panel.grid.minor = element_line(color = "grey", linetype = "dashed"), 
+    axis.text = element_text(size = 15), 
+    axis.title = element_text(size = 18)
+  )+
+  coord_cartesian(expand = F)
+
+figs2
+
+ggsave("figure2", figs2, 
+       width = 15, 
+       height = 8, units = "in")
