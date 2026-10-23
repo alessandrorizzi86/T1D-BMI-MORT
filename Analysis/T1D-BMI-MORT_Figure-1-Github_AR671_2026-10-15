@@ -1,0 +1,119 @@
+# Project: T1D-BMI-MORT
+# File: Figure 1 
+# Author: Alessandro Rizzi (ar671@leicester.ac.uk)
+# Last Update: 2026-09-03
+
+################################################################################
+## Useful Libraries
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+
+################################################################################
+# Set WD
+setwd("folder")
+
+################################################################################
+# Colours
+chosen_colours <- c( "green3",  "red3", "orange3", "blue3")
+
+################################################################################
+files_list <- list.files(path = "files", pattern = "pattern", full.names = TRUE)
+files_list
+
+################################################################################
+
+df <- read.csv(files_list[1])
+fig1 <- list()
+
+for (i in 1:length(files_list)) {
+  df <- read.csv(files_list[i])
+  fig1[[i]] <- df %>% 
+    #select(tt2, dm_class1, dm_class2, dm_class3, dm_class4, nodm_class1, nodm_class2, nodm_class3, nodm_class4) %>% 
+    pivot_longer(cols = c(dm_class1:matched_class4_uci), 
+                 names_to = "group", 
+                 values_to = "surv") %>% 
+    mutate(
+      type = case_when(
+        grepl("_lci", group) == T ~ "lci", 
+        grepl("_uci", group) == T ~ "uci" ), 
+      type = ifelse(is.na(type) == T, "estimate", type)) %>% 
+    mutate(
+      bmi_class = case_when(
+        grepl("matched_class2", group) ~ "Normal Weight",
+        grepl("matched_class1", group) ~ "Underweight", 
+        grepl("matched_class3", group) ~ "Overweight",
+        grepl("matched_class4", group) ~ "Obese" ,
+        grepl("dm_class2", group) ~ "Normal Weight", 
+        grepl("dm_class1", group) ~ "Underweight",
+        grepl("dm_class3", group) ~ "Overweight", 
+        grepl("dm_class4", group) ~ "Obese"
+      ), 
+      group = case_when(
+        grepl("matched_class2", group) ~ "No T1D",
+        grepl("matched_class1", group) ~ "No T1D", 
+        grepl("matched_class3", group) ~ "No T1D",
+        grepl("matched_class4", group) ~ "No T1D" ,
+        grepl("dm_class2", group) ~ "T1D", 
+        grepl("dm_class1", group) ~ "T1D",
+        grepl("dm_class3", group) ~ "T1D", 
+        grepl("dm_class4", group) ~ "T1D"
+      )
+    ) %>% 
+    pivot_wider(
+      names_from = type, 
+      values_from = surv
+    ) %>% 
+    ggplot(aes(x= tt, y= estimate, colour = as.factor(bmi_class), linetype = as.factor(group))) +
+    geom_line(linewidth = 1.0)+
+    geom_ribbon(aes(ymin = lci, ymax = uci, fill = as.factor(bmi_class)), 
+                alpha= 0.05, 
+                colour = NA)+
+    scale_linetype_manual(values = c( "dotted", "solid"), 
+                          labels= c("No T1D", "T1D"), 
+                          name = " ")+
+    scale_color_manual(values = chosen_colours,
+                       aesthetics = c("colour", "fill"),
+                       labels = c( "Normal Weight", 
+                                   "Obese", "Overweight", "Underweight"
+                       ),
+                       name = "BMI Groups")+
+    labs(x= "Years", y= "Survival Probability")+
+    coord_cartesian(xlim = c(0,15), ylim =c(0.5,1), expand = F)+
+    scale_y_continuous(breaks = c(0.5, 0.6, 0.7, 0.8, 0.9, 1))+
+    scale_x_continuous(breaks = c(0, 2, 4 , 6 , 8 , 10, 12, 14))+
+    theme(
+      plot.title = element_text(size = 14),
+      axis.text = element_text(size = 11),
+      axis.title = element_text(size = 13),
+      panel.background = element_rect(fill = "white"), 
+      panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+      axis.line = element_line(color = "black")
+    )
+}
+
+figa <- fig1[[1]] + labs(title="Females")
+figa <- figa +
+  theme(
+    legend.text = element_text(size = 14), 
+    legend.title = element_text(size = 14)
+  )
+
+figb <- fig1[[2]] + labs(title="Males") 
+figb <- figb + theme(
+  legend.text = element_text(size = 14), 
+  legend.title = element_text(size = 14)
+)
+
+# ARRANGE ALL THE FIGURES
+fig1 <- ggarrange(figb, figa,  
+                  nrow = 1, ncol = 2, 
+                  common.legend = T, 
+                  legend = "bottom")
+
+fig1
+
+ggsave("figure1", fig1, 
+       width = 15, 
+       height = 8, units = "in")
