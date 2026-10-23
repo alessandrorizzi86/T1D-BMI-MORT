@@ -20,6 +20,7 @@ Evaluation of the association between body mass index (BMI) groups, defined acco
 | T1D-BMI-MORT_Github-Codes-BMI-GOLD_AR671_2026-10-21.txt  | Codelist for BMI extraction in CPRD Gold |
 
 *Folder*: **Analysis**
+
 References to real files have been replaced in the github version of the code. 
 
 | **Filename** | **Content** | **Software** |
