@@ -1,1 +1,404 @@
+* Project: T1D-BMI-MORT
+* File: Analysis
+* Author: Alessandro Rizzi (ar671@leicester.ac.uk)
+* Last Update: 2026-10-23
 
+********************************************************************************
+** Change working directory
+cd "folder"
+
+** Import Dataset
+use "dataset", clear
+
+********************************************************************************
+* Data Preparation
+
+* Generate follow up time 
+gen fup_ = (exit_date - index_date)/365.24
+replace index_date = (index_date-0.5) if fup_ == 0
+gen fup = (exit_date - index_date)/365.24 
+
+* Recode Ethnicity
+gen ethn2 = "."
+replace ethn2 = "Asian" if ethn_ == "asian"
+replace ethn2 = "Asian" if ethn_ == "bangladesi"
+replace ethn2 = "Asian" if ethn_ == "chinese"
+replace ethn2 = "Asian" if ethn_ == "indian"
+replace ethn2 = "Asian" if ethn_ == "oth_asian"
+replace ethn2 = "Asian" if ethn_ == "pakistani"
+replace ethn2 = "Black" if ethn_ == "black"
+replace ethn2 = "Black" if ethn_ == "bl_afric"
+replace ethn2 = "Black" if ethn_ == "bl_carib"
+replace ethn2 = "Black" if ethn_ == "bl_other"
+replace ethn2 = "Mixed" if ethn_ == "mixed"
+replace ethn2 = "Mixed" if ethn_ == "unknown"
+replace ethn2 = "Mixed" if ethn_ == "other"
+replace ethn2 = "White" if ethn_ == "white"
+encode ethn2, gen(ethn)
+
+* Recode BMI
+gen bmi_class =.
+replace bmi_class = 1 if bmi <18.5
+replace bmi_class = 2 if bmi >=18.5
+replace bmi_class = 3 if bmi >=25.0
+replace bmi_class = 4 if bmi >=30.0
+
+* Recode Deprivation Index
+
+gen _imd_class = "."
+replace _imd_class = "Q1" if imd == 1
+replace _imd_class = "Q1" if imd == 2
+replace _imd_class = "Q2" if imd == 3
+replace _imd_class = "Q2" if imd == 4
+replace _imd_class = "Q3" if imd == 5
+replace _imd_class = "Q3" if imd == 6
+replace _imd_class = "Q4" if imd == 7
+replace _imd_class = "Q4" if imd == 8
+replace _imd_class = "Q5" if imd == 9
+replace _imd_class = "Q5" if imd == 10
+rename imd imd_
+encode _imd_class, gen(imd)
+
+
+rename class class_
+encode class_, gen(class)
+
+********************************************************************************
+* Survival Analysis
+
+stset fup, failure(dead)
+
+*** Estimating the person-years
+sum fup if sex == "M", d
+sum fup if sex == "F", d
+
+table dead if sex == "M" & group == 1, statistic(frequency) statistic(percent)
+table dead if sex == "M" & group == 0, statistic(frequency) statistic(percent)
+table dead if sex == "F" & group == 1, statistic(frequency) statistic(percent)
+table dead if sex == "F" & group == 0, statistic(frequency) statistic(percent)
+
+strate group, per(1000)
+stir group
+
+strate group if sex == "M" , per(1000)
+strate group if sex == "F", per(1000)
+
+preserve
+	keep if sex == "M"
+	stir group
+restore
+
+preserve
+	keep if sex == "F"
+	stir group
+restore
+
+********************************************************************************
+* All cause mortality - Unadjusted ~ bmi class
+
+local sex "M F"
+local group 0 1 
+
+foreach i of local sex {
+	foreach l of local group {
+		display "Sex `i' Group `l'"
+		stpm3 ib(2).bmi_class if sex == "`i'" & group == `l', df(3) scale(lncumhazard) eform
+		estimates store model_`i'_`l'
+		
+	}
+}
+
+********************************************************************************
+* All cause mortality - Adjusted model without interaction ~ bmi_class + age + imd + ethnicity
+********************************************************************************
+
+local sex "M F"
+local group 0 1 
+
+foreach i of local sex {
+	foreach l of local group {
+		display "Sex `i' Group `l'"
+		stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if sex == "`i'" & group == `l', df(3) scale(lncumhazard) eform
+		estimates store model_`i'_`l'
+		
+	}
+}
+
+********************************************************************************
+* Standsurv using the conditional for bmi and group and age (Figure 1)
+* Males 
+
+preserve
+
+keep if sex == "M"
+
+stpm3 ib(2).bmi_class i.group c.age ib(4).ethn ib(1).imd, df(3) scale(lncumhazard) eform
+range tt 0 15 50
+
+	standsurv dm_class1 dm_class2 dm_class3 dm_class4 matched_class1 matched_class2 matched_class3 matched_class4 if e(sample), ///
+	timevar(tt) ci ///
+	at1 (bmi_class 1 group 1 ) ///
+	at2 (bmi_class 2 group 1 ) ///
+	at3 (bmi_class 3 group 1 ) ///
+	at4 (bmi_class 4 group 1 ) ///
+	at5 (bmi_class 1 group 0 ) ///
+	at6 (bmi_class 2 group 0 ) ///
+	at7 (bmi_class 3 group 0 ) ///
+	at8 (bmi_class 4 group 0 ) ///
+	frame (surv1, replace)
+
+	frame surv1 {
+		export delimited using "results", replace
+	}
+restore
+
+* Female 
+
+preserve
+
+keep if sex == "F"
+range tt 0 15 50
+
+stpm3 ib(2).bmi_class i.group c.age ib(4).ethn ib(1).imd, df(3) scale(lncumhazard) eform
+
+	standsurv dm_class1 dm_class2 dm_class3 dm_class4 matched_class1 matched_class2 matched_class3 matched_class4 if e(sample), ///
+	timevar(tt) ci ///
+	at1 (bmi_class 1 group 1 ) ///
+	at2 (bmi_class 2 group 1 ) ///
+	at3 (bmi_class 3 group 1 ) ///
+	at4 (bmi_class 4 group 1 ) ///
+	at5 (bmi_class 1 group 0 ) ///
+	at6 (bmi_class 2 group 0 ) ///
+	at7 (bmi_class 3 group 0 ) ///
+	at8 (bmi_class 4 group 0 ) ///
+	frame (surv1, replace)
+	
+	frame surv1 {
+		export delimited using "results", replace
+	}
+
+restore 
+********************************************************************************
+* Competing Risk Analysis
+
+tab class
+
+* class = 1 -> Cancer
+* class = 3 -> COPD
+* class = 4 -> CVD
+* class = 5 -> Dementia
+* class = 7 -> Other
+
+********************************************************************************
+* CVD 
+
+stset fup, failure(class=4) id(patid)
+
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "M" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "M" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "F" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "F" , df(3) scale(lncumhazard) eform */ few failures
+
+********************************************************************************
+* Cancer 
+
+stset fup, failure(class=1) id(patid)
+
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "M" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "M" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "F" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "F" , df(3) scale(lncumhazard) eform 
+
+
+********************************************************************************
+* COPD
+
+stset fup, failure(class=3) id(patid)
+
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "M" , df(3) scale(lncumhazard) eform */ few failures
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "M" , df(3) scale(lncumhazard) eform */ few failures
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "F" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "F" , df(3) scale(lncumhazard) eform */ few failures
+
+
+********************************************************************************
+* Dementia
+
+stset fup, failure(class=5) id(patid)
+
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "M" , df(3) scale(lncumhazard) eform */ few failures
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "M" , df(3) scale(lncumhazard) eform */ few failures
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "F" , df(3) scale(lncumhazard) eform */ few failures
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "F" , df(3) scale(lncumhazard) eform */ few failures
+
+********************************************************************************
+* Others 
+
+stset fup, failure(class=7) id(patid)
+
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "M" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "M" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 1 & sex == "F" , df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(4).ethn ib(1).imd if group == 0 & sex == "F" , df(3) scale(lncumhazard) eform 
+
+
+********************************************************************************
+* CUMULATIVE INCIDENCE FUNCTION - TABLES FOR FIGURE S3
+
+preserve 
+keep if sex == "M"
+range tt 0 15 50
+
+foreach j in 1 3 4 5 7 {
+	stset fup, failure(class=`j') id(patid)
+
+	stpm3 ib(2).bmi_class i.group c.age ib(4).ethn ib(1).imd, df(3) scale(lncumhazard) eform
+	estimates store males_`j'
+}
+
+standsurv, crmodels(males_1 males_3 males_4 males_5  males_7) cif /// 
+	at1(bmi_class 1 group 1) ///
+	at2(bmi_class 2 group 1) ///
+	at3(bmi_class 3 group 1) ///
+	at4(bmi_class 4 group 1) ///
+	timevar(tt) ///
+	frame (cif_m_1, replace)
+	
+	frame cif_m_1{
+		export delimited using "results", replace
+	}
+	
+	standsurv, crmodels(males_1 males_3 males_4 males_5  males_7) cif /// 
+	at1(bmi_class 1 group 0) ///
+	at2(bmi_class 2 group 0) ///
+	at3(bmi_class 3 group 0) ///
+	at4(bmi_class 4 group 0) ///
+	timevar(tt) ///
+	frame (cif_m_0, replace)
+	
+	frame cif_m_0{
+		export delimited using "results", replace
+	}
+restore	
+********************************************************************************
+* Female 
+preserve 
+keep if sex == "F"
+range tt 0 15 50
+foreach j in 1 3 4 5 7 {
+	stset fup, failure(class=`j') id(patid)
+
+	stpm3 ib(2).bmi_class i.group c.age ib(4).ethn ib(1).imd, df(3) scale(lncumhazard) eform
+	estimates store females_`j'
+}
+
+standsurv, crmodels(females_1 females_3 females_4 females_5 females_7) cif /// 
+	at1(bmi_class 1 group 1) ///
+	at2(bmi_class 2 group 1) ///
+	at3(bmi_class 3 group 1) ///
+	at4(bmi_class 4 group 1) ///
+	timevar(tt) ///
+	frame (cif_m_1, replace)
+	
+	frame cif_m_1{
+		export delimited using "results", replace
+	}
+	
+	standsurv, crmodels(females_1 females_3 females_4 females_5 females_7) cif /// 
+	at1(bmi_class 1 group 0) ///
+	at2(bmi_class 2 group 0) ///
+	at3(bmi_class 3 group 0) ///
+	at4(bmi_class 4 group 0) ///
+	timevar(tt) ///
+	frame (cif_m_0, replace)
+	
+	frame cif_m_0{
+		export delimited using "results", replace
+	}
+	
+
+restore
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+* [2026-07-09]
+* Ethnicity stratified HR for all cause mortality 
+
+table ethn2
+
+table dead if sex == "M" & ethn2 == "Asian" & group == 1
+table dead bmi_class if sex == "M" & ethn2 == "Asian" & group == 1
+
+table dead if sex == "M" & ethn2 == "Asian" & group == 0
+table dead bmi_class if sex == "M" & ethn2 == "Asian" & group == 0
+
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "Asian" & group == 1,  df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "Asian" & group == 0,  df(3) scale(lncumhazard) eform
+
+table dead if sex == "M" & ethn2 == "Black" & group == 1
+table dead bmi_class if sex == "M" & ethn2 == "Black" & group == 1
+
+table dead if sex == "M" & ethn2 == "Black" & group == 0
+table dead bmi_class if sex == "M" & ethn2 == "Black" & group == 0
+
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "Black" & group == 1,  df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "Black" & group == 0,  df(3) scale(lncumhazard) eform
+
+
+table dead if sex == "M" & ethn2 == "Mixed" & group == 1
+table dead bmi_class if sex == "M" & ethn2 == "Mixed" & group == 1
+
+table dead if sex == "M" & ethn2 == "Mixed" & group == 0
+table dead bmi_class if sex == "M" & ethn2 == "Mixed" & group == 0
+
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "Mixed" & group == 1,  df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "Mixed" & group == 0,  df(3) scale(lncumhazard) eform
+
+table dead if sex == "M" & ethn2 == "White" & group == 1
+table dead bmi_class if sex == "M" & ethn2 == "White" & group == 1
+
+table dead if sex == "M" & ethn2 == "White" & group == 0
+table dead bmi_class if sex == "M" & ethn2 == "White" & group == 0
+
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "White" & group == 1,  df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethn2 == "White" & group == 0,  df(3) scale(lncumhazard) eform
+
+
+gen ethnicity3 = "."
+replace ethnicity3 = "White" if ethn2 == "White"
+replace ethnicity3 = "Other" if ethn2 == "Asian"
+replace ethnicity3 = "Other" if ethn2 == "Black"
+replace ethnicity3 = "Other" if ethn2 == "Mixed"
+
+table dead ethnicity3 if sex == "M" &  group == 1
+table dead bmi_class if sex == "M" &  group == 1 & ethnicity3 == "White"
+table dead bmi_class if sex == "M" &  group == 1 & ethnicity3 == "Other"
+
+table dead ethnicity3 if sex == "M" &  group == 0
+table dead bmi_class if sex == "M" &  group == 0 & ethnicity3 == "White"
+table dead bmi_class if sex == "M" &  group == 0 & ethnicity3 == "Other"
+
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethnicity3 == "White" & group == 1,  df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethnicity3 == "Other" & group == 1,  df(3) scale(lncumhazard) eform
+
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethnicity3 == "White" & group == 0,  df(3) scale(lncumhazard) eform
+stpm3 ib(2).bmi_class c.age ib(1).imd if sex == "M" & ethnicity3 == "Other" & group == 0,  df(3) scale(lncumhazard) eform
