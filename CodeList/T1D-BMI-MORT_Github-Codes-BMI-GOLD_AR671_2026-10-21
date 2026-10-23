@@ -1,0 +1,15 @@
+medcode	clinicalevents	referralevents	testevents	immunisationevents	readcode	readterm	databasebuild	clinical
+108478	991	0	0	0	22KE.00	Obese class III (BMI equal to or greater than 40.0)	August 2014	bmi
+107231	14	0	0	0	22KA.00	Target body mass index	November 2013	bmi
+8105	4402855	1239	213	0	22K..00	Body Mass Index	February 2009	bmi
+13278	454303	826	69	0	22K5.00	Body mass index 30+ - obesity	February 2009	bmi
+28937	411504	11	0	0	22K2.00	Body Mass Index high K/M2	February 2009	bmi
+28946	385965	2	1	0	22K1.00	Body Mass Index normal K/M2	February 2009	bmi
+9015	267078	101	112	0	22K4.00	Body mass index index 25-29 - overweight	February 2009	bmi
+44291	171875	1	62	0	22K8.00	Body mass index 20-24 - normal	February 2009	bmi
+22556	71473	294	4	0	22K7.00	Body mass index 40+ - severely obese	February 2009	bmi
+32914	50688	17	0	0	22K3.00	Body Mass Index low K/M2	February 2009	bmi
+24496	42000	58	5	0	22K6.00	Body mass index less than 20	February 2009	bmi
+108694	1558	0	0	0	22KC.00	Obese class I (body mass index 30.0 - 34.9)	October 2014	bmi
+108610	1368	0	0	0	22KD.00	Obese class II (body mass index 35.0 - 39.9)	September 2014	bmi
+105800	42	0	0	0	22KB.00	Baseline body mass index	February 2013	bmi
