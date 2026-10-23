@@ -1,0 +1,582 @@
+# Project: T1D-BMI-MORT
+# File: Figure S3 
+# Author: Alessandro Rizzi (ar671@leicester.ac.uk)
+# Last Update: 2026-09-03
+
+################################################################################
+## Useful Libraries
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(cowplot)
+
+################################################################################
+# Set WD
+setwd("folder")
+
+################################################################################
+# Colours
+chosen_colours <- c( "green4", "orange2", "red3",  "blue3", "grey40")
+
+# import the dataset
+list_files <- files_list <- list.files(path = "files", pattern = "pattern", full.names = TRUE)
+list_files
+
+################################################################################
+# Defining the labels for rows and colums 
+
+col_labels <- c("Underweight", "Normal Weight", "Overweight", "Obese")
+row_labels <- c("Males \n T1D", "Males \n No T1D", "Females \n T1D", "Females \n No T1D")
+
+# Build label grobs
+make_label <- function(txt, angle = 0) {
+  ggdraw() + draw_label(txt, fontface = "bold", size = 14, angle = angle)
+}
+
+col_label_row <- plot_grid(
+  plotlist = lapply(col_labels, make_label),
+  nrow = 1, ncol = 4
+)
+
+row_label_col <- plot_grid(
+  plotlist = lapply(row_labels, make_label),
+  nrow = 4, ncol = 1
+)
+
+#################################################################################
+# T1 males
+
+df_1 <- read.csv(list_files[4])
+
+# Underweight
+t1m_uw <- df_1 %>% select(c(starts_with("X_at1_"), tt)) %>% 
+  rename(
+    Cancer = X_at1_males_1, 
+    CVD = X_at1_males_4,
+    COPD = X_at1_males_3,
+    Dementia = X_at1_males_5, 
+    Other = X_at1_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+                     values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1m_uw
+
+# Normal weight
+t1m_nw <- df_1 %>% select(c(starts_with("X_at2_"), tt)) %>% 
+  rename(
+    Cancer = X_at2_males_1, 
+    CVD = X_at2_males_4,
+    COPD = X_at2_males_3,
+    Dementia = X_at2_males_5, 
+    Other = X_at2_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1m_nw
+
+# Overweight
+t1m_ow <- df_1 %>% select(c(starts_with("X_at3_"), tt)) %>% 
+  rename(
+    Cancer = X_at3_males_1, 
+    CVD = X_at3_males_4,
+    COPD = X_at3_males_3,
+    Dementia = X_at3_males_5, 
+    Other = X_at3_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1m_ow
+
+# Obese
+t1m_ob <- df_1 %>% select(c(starts_with("X_at4_"), tt)) %>% 
+  rename(
+    Cancer = X_at4_males_1, 
+    CVD = X_at4_males_4,
+    COPD = X_at4_males_3,
+    Dementia = X_at4_males_5, 
+    Other = X_at4_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1m_ob
+
+#################################################################################
+# T0 males
+
+df_1 <- read.csv(list_files[3])
+
+# Underweight
+t0m_uw <- df_1 %>% select(c(starts_with("X_at1_"), tt)) %>% 
+  rename(
+    Cancer = X_at1_males_1, 
+    CVD = X_at1_males_4,
+    COPD = X_at1_males_3,
+    Dementia = X_at1_males_5, 
+    Other = X_at1_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0m_uw
+
+# Normal weight
+t0m_nw <- df_1 %>% select(c(starts_with("X_at2_"), tt)) %>% 
+  rename(
+    Cancer = X_at2_males_1, 
+    CVD = X_at2_males_4,
+    COPD = X_at2_males_3,
+    Dementia = X_at2_males_5, 
+    Other = X_at2_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0m_nw
+
+# Overweight
+t0m_ow <- df_1 %>% select(c(starts_with("X_at3_"), tt)) %>% 
+  rename(
+    Cancer = X_at3_males_1, 
+    CVD = X_at3_males_4,
+    COPD = X_at3_males_3,
+    Dementia = X_at3_males_5, 
+    Other = X_at3_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0m_ow
+
+# Obese
+t0m_ob <- df_1 %>% select(c(starts_with("X_at4_"), tt)) %>% 
+  rename(
+    Cancer = X_at4_males_1, 
+    CVD = X_at4_males_4,
+    COPD = X_at4_males_3,
+    Dementia = X_at4_males_5, 
+    Other = X_at4_males_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0m_ob
+
+#################################################################################
+# T1 females
+
+df_1 <- read.csv(list_files[2])
+
+# Underweight
+t1f_uw <- df_1 %>% select(c(starts_with("X_at1_"), tt)) %>% 
+  rename(
+    Cancer = X_at1_females_1, 
+    CVD = X_at1_females_4,
+    COPD = X_at1_females_3,
+    Dementia = X_at1_females_5, 
+    Other = X_at1_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1f_uw
+
+# Normal weight
+t1f_nw <- df_1 %>% select(c(starts_with("X_at2_"), tt)) %>% 
+  rename(
+    Cancer = X_at2_females_1, 
+    CVD = X_at2_females_4,
+    COPD = X_at2_females_3,
+    Dementia = X_at2_females_5, 
+    Other = X_at2_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1f_nw
+
+# Overweight
+t1f_ow <- df_1 %>% select(c(starts_with("X_at3_"), tt)) %>% 
+  rename(
+    Cancer = X_at3_females_1, 
+    CVD = X_at3_females_4,
+    COPD = X_at3_females_3,
+    Dementia = X_at3_females_5, 
+    Other = X_at3_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1f_ow
+
+# Obese
+t1f_ob <- df_1 %>% select(c(starts_with("X_at4_"), tt)) %>% 
+  rename(
+    Cancer = X_at4_females_1, 
+    CVD = X_at4_females_4,
+    COPD = X_at4_females_3,
+    Dementia = X_at4_females_5, 
+    Other = X_at4_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t1f_ob
+
+#################################################################################
+# T0 females
+
+df_1 <- read.csv(list_files[1])
+
+# Underweight
+t0f_uw <- df_1 %>% select(c(starts_with("X_at1_"), tt)) %>% 
+  rename(
+    Cancer = X_at1_females_1, 
+    CVD = X_at1_females_4,
+    COPD = X_at1_females_3,
+    Dementia = X_at1_females_5, 
+    Other = X_at1_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0f_uw
+
+# Normal weight
+t0f_nw <- df_1 %>% select(c(starts_with("X_at2_"), tt)) %>% 
+  rename(
+    Cancer = X_at2_females_1, 
+    CVD = X_at2_females_4,
+    COPD = X_at2_females_3,
+    Dementia = X_at2_females_5, 
+    Other = X_at2_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0f_nw
+
+# Overweight
+t0f_ow <- df_1 %>% select(c(starts_with("X_at3_"), tt)) %>% 
+  rename(
+    Cancer = X_at3_females_1, 
+    CVD = X_at3_females_4,
+    COPD = X_at3_females_3,
+    Dementia = X_at3_females_5, 
+    Other = X_at3_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0f_ow
+
+# Obese
+t0f_ob <- df_1 %>% select(c(starts_with("X_at4_"), tt)) %>% 
+  rename(
+    Cancer = X_at4_females_1, 
+    CVD = X_at4_females_4,
+    COPD = X_at4_females_3,
+    Dementia = X_at4_females_5, 
+    Other = X_at4_females_7, 
+    Years = tt
+  ) %>% pivot_longer(
+    cols = c(Cancer:Other),
+    names_to = "Cause", 
+    values_to = "CIF") %>% 
+  ggplot(aes(x=Years, y= CIF, fill = Cause))+
+  geom_area(position = "stack")+
+  #theme_bw()+
+  scale_color_manual(values = chosen_colours,
+                     aesthetics = c("fill"))+
+  theme(
+    plot.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title = element_text(size = 11),
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey", linetype = "dashed"), 
+    axis.line = element_line(color = "black"), 
+    plot.margin = margin(r= 6, b = 0, l = 0, t=2)
+  )+
+  coord_cartesian(xlim = c(0,15), ylim = c(0,0.35), expand = F)
+
+t0f_ob
+
+figure_s6 <- ggarrange(t1m_uw, t1m_nw, t1m_ow, t1m_ob, 
+          t0m_uw, t0m_nw, t0m_ow, t0m_ob, 
+          t1f_uw, t1f_nw, t1f_ow, t1f_ob, 
+          t0f_uw, t0f_nw, t0f_ow, t0f_ob, 
+          nrow = 4, ncol = 4, common.legend = T, legend = "bottom", 
+          align = "hv")
+
+
+
+# Add column labels on top, row labels on left
+fig_s6 <- plot_grid(
+  NULL,          col_label_row,
+  row_label_col, figure_s6,
+  nrow = 2, ncol = 2,
+  rel_widths  = c(0.1, 1),   # left column is narrow (row labels)
+  rel_heights = c(0.08, 1)   # top row is short (column labels)
+)
+
+fig_s6
+
+ggsave("figure", fig_s6, units = "in", width = 14, height = 7)
